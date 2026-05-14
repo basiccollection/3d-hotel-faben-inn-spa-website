@@ -41,7 +41,8 @@
         .loader-brand { font-family:'Playfair Display',serif; font-size:1.1rem; color:rgba(201,168,76,.8); letter-spacing:.5em; text-transform:uppercase; }
         .loader-bar { width:180px; height:1px; background:rgba(201,168,76,.12); overflow:hidden; position:relative; }
         .loader-bar-fill { height:100%; width:0%; background:linear-gradient(90deg,transparent,var(--gold),transparent); transition:width 2s cubic-bezier(.4,0,.2,1); }
-        .loader-pct { font-size:.65rem; letter-spacing:.4em; color:rgba(201,168,76,.5); }
+        .loader-pct { font-size:.75rem; letter-spacing:.3em; color:rgba(201,168,76,.7); text-align:center; min-height:1.2em; }
+        .loader-tagline { font-size:.68rem; letter-spacing:.25em; color:rgba(255,255,255,.3); text-align:center; text-transform:uppercase; margin-top:-14px; }
 
         /* ---- NAV ---- */
         nav { position:fixed; top:0; left:0; right:0; z-index:1000; padding:28px 64px; display:flex; align-items:center; justify-content:space-between; transition:all .5s ease; }
@@ -372,7 +373,8 @@
     <div class="loader-monogram"><span>F</span></div>
     <div class="loader-brand">Hotel Faben</div>
     <div class="loader-bar"><div class="loader-bar-fill" id="loaderFill"></div></div>
-    <div class="loader-pct" id="loaderPct">0%</div>
+    <div class="loader-pct" id="loaderPct">Something special is on its way...</div>
+    <div class="loader-tagline" id="loaderTag">Private &nbsp;·&nbsp; Peaceful &nbsp;·&nbsp; Clean</div>
 </div>
 
 <!-- Nav -->
@@ -924,11 +926,19 @@ window.addEventListener('load', () => {
     const fill = document.getElementById('loaderFill');
     const pct  = document.getElementById('loaderPct');
     const loader = document.getElementById('loader');
-    let p = 0;
+    const phrases = [
+        'Something special is on its way...',
+        'Your perfect escape is loading...',
+        'Private. Peaceful. Clean — almost ready...',
+        'Preparing your luxury experience...',
+        'Almost there — worth the wait! ✨'
+    ];
+    let p = 0, pi = 0;
     const iv = setInterval(() => {
         p = Math.min(p + Math.random() * 18, 100);
         fill.style.width = p + '%';
-        pct.textContent = Math.floor(p) + '%';
+        pi = Math.min(Math.floor((p / 100) * phrases.length), phrases.length - 1);
+        pct.textContent = phrases[pi];
         if (p >= 100) {
             clearInterval(iv);
             setTimeout(() => {
