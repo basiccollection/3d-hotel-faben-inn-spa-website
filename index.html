@@ -384,7 +384,7 @@
         <li><a href="#pool">Pool</a></li>
         <li><a href="#amenities">Amenities</a></li>
         <li><a href="#contact">Contact</a></li>
-        <li><a href="#booking" class="nav-book">Book Now</a></li>
+        <li><a href="javascript:void(0)" onclick="openWhatsApp()" class="nav-book">Book Now</a></li>
     </ul>
     <div class="nav-hamburger" id="hamburger">
         <span></span><span></span><span></span>
@@ -417,7 +417,7 @@
         </div>
         <p class="hero-sub" id="hSub">Luxury rooms, swimming pool, spa wellness &amp; fine dining — an affordable luxury escape in the heart of Morang, Nepal.</p>
         <div class="hero-btns" id="hBtns">
-            <a href="javascript:void(0)" onclick="bookOnWhatsApp()" class="btn-primary">
+            <a href="javascript:void(0)" onclick="openWhatsApp()" class="btn-primary">
                 Book Your Stay
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
@@ -447,7 +447,7 @@
             <div class="section-rule rv d3"><div class="section-rule-line"></div><div class="section-rule-dot"></div></div>
             <p class="section-sub rv d3">Our guests enjoy access to the beautiful Gokulam Resort swimming pool, located right in front of our hotel. Take a refreshing dip and unwind in a stunning outdoor setting. <span style="color:var(--gold);font-weight:500">Rs. 300 per person.</span></p>
             <div style="margin-top:40px" class="rv d4">
-                <a href="javascript:void(0)" onclick="bookOnWhatsApp()" class="btn-primary btn-sm">Reserve Pool Access</a>
+                <a href="javascript:void(0)" onclick="openWhatsApp()" class="btn-primary btn-sm">Reserve Pool Access</a>
             </div>
         </div>
         <div class="pool-cards">
@@ -1140,6 +1140,12 @@ ham.addEventListener('click', () => {
 
 /* ===================== WHATSAPP BOOKING ===================== */
 const WA = '9779762917929';
+
+/* Direct WhatsApp open — no date required */
+function openWhatsApp() {
+    const msg = `Hello Hotel Faben Inn! 🏨\n\nI would like to make a booking. Please share availability and details.\n\nThank you!`;
+    window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msg), '_blank');
+}
 
 function formatDate(val) {
     if (!val) return 'Not selected';
