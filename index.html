@@ -409,12 +409,11 @@
     <div class="hero-particles" id="heroPt"></div>
     <canvas id="hero-canvas"></canvas>
     <div class="hero-content">
-        <div class="hero-eyebrow" id="hEyebrow">Sundarharicha-4, Morang, Nepal — 3 km from Itahari</div>
         <h1 class="hero-title">
             <span id="hT1">PPC Model Hotel</span>
             <span id="hT2">P — Private &nbsp;·&nbsp; P — Peaceful &nbsp;·&nbsp; C — Clean</span>
         </h1>
-        <p class="hero-sub" id="hSub">Luxury rooms, swimming pool, spa wellness &amp; fine dining — an affordable luxury escape in the heart of Morang, Nepal.</p>
+        <p style="font-size:.72rem;letter-spacing:.35em;text-transform:uppercase;color:rgba(201,168,76,.55);margin-bottom:44px;opacity:0;transform:translateY(14px)" id="hSub">3 km from Itahari</p>
         <div class="hero-btns" id="hBtns">
             <a href="javascript:void(0)" onclick="openWhatsApp()" class="btn-primary">
                 Book Your Stay
@@ -1059,13 +1058,10 @@ spawnParticles('spaPt', 28, false);
 /* ===================== HERO ANIMATION ===================== */
 function startHeroAnim() {
     const tl = gsap.timeline();
-    tl.to('#hEyebrow', { opacity:1, y:0, duration:.9, ease:'power3.out' })
-      .to('#hT1',      { opacity:1, y:0, duration:1.05, ease:'power3.out' }, '-=.5')
-      .to('#hT2',      { opacity:1, y:0, duration:1.05, ease:'power3.out' }, '-=.75')
-      .to('#hBrand',   { opacity:1, y:0, duration:.85, ease:'power3.out' }, '-=.55')
-      .to('#hDiv',     { opacity:1, duration:.7, ease:'power2.out' }, '-=.4')
-      .to('#hSub',     { opacity:1, y:0, duration:.9, ease:'power3.out' }, '-=.35')
-      .to('#hBtns',    { opacity:1, y:0, duration:.9, ease:'power3.out' }, '-=.5');
+    tl.to('#hT1',   { opacity:1, y:0, duration:1.05, ease:'power3.out' })
+      .to('#hT2',   { opacity:1, y:0, duration:1.05, ease:'power3.out' }, '-=.75')
+      .to('#hSub',  { opacity:1, y:0, duration:.85, ease:'power3.out' }, '-=.5')
+      .to('#hBtns', { opacity:1, y:0, duration:.9,  ease:'power3.out' }, '-=.5');
 }
 
 /* ===================== PARALLAX ===================== */
