@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Faben Inn & Spa — Private, Peaceful & Clean</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --gold: #C9A84C;
+            --gold-light: #F2C968;
+            --gold-pale: #FDE8A8;
+            --gold-dark: #8B6914;
+            --amber: #FF8C00;
+            --dark: #060504;
+            --dark-2: #0D0B08;
+            --dark-3: #141008;
+            --glass-bg: rgba(12, 9, 5, 0.65);
+            --glass-border: rgba(201, 168, 76, 0.18);
+        }
+
+        html { scroll-behavior: smooth; overflow-x: hidden; }
+        body { background: var(--dark); color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; cursor: none; }
+
+        /* ---- CURSOR ---- */
+        #cursor { width: 10px; height: 10px; background: var(--gold); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); mix-blend-mode: screen; transition: width .2s, height .2s; }
+        #cursor-ring { width: 38px; height: 38px; border: 1px solid rgba(201,168,76,.45); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: width .3s, height .3s, border-color .3s; }
+        body.cursor-hover #cursor { width: 18px; height: 18px; }
+        body.cursor-hover #cursor-ring { width: 56px; height: 56px; border-color: rgba(201,168,76,.7); }
+
+        /* ---- LOADER ---- */
+        #loader { position: fixed; inset: 0; background: #060504; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; }
+        .loader-monogram { width: 80px; height: 80px; border: 1px solid rgba(201,168,76,.3); display: flex; align-items: center; justify-content: center; position: relative; }
+        .loader-monogram::before { content:''; position:absolute; inset:-6px; border:1px solid rgba(201,168,76,.1); }
+        .loader-monogram span { font-family:'Playfair Display',serif; font-size:2rem; color:var(--gold); font-weight:600; }
+        .loader-brand { font-family:'Playfair Display',serif; font-size:1.1rem; color:rgba(201,168,76,.8); letter-spacing:.5em; text-transform:uppercase; }
+        .loader-bar { width:180px; height:1px; background:rgba(201,168,76,.12); overflow:hidden; position:relative; }
+        .loader-bar-fill { height:100%; width:0%; background:linear-gradient(90deg,transparent,var(--gold),transparent); transition:width 2s cubic-bezier(.4,0,.2,1); }
+        .loader-pct { font-size:.65rem; letter-spacing:.4em; color:rgba(201,168,76,.5); }
+
+        /* ---- NAV ---- */
+        nav { position:fixed; top:0; left:0; right:0; z-index:1000; padding:28px 64px; display:flex; align-items:center; justify-content:space-between; transition:all .5s ease; }
+        nav.scrolled { background:rgba(6,5,4,.92); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); padding:16px 64px; border-bottom:1px solid rgba(201,168,76,.08); }
+        .nav-logo { text-decoration:none; }
+        .nav-logo-main { font-family:'Playfair Display',serif; font-size:1.35rem; font-weight:600; color:var(--gold); letter-spacing:.08em; display:block; }
+        .nav-logo-sub { font-size:.55rem; letter-spacing:.5em; color:rgba(201,168,76,.55); display:block; margin-top:1px; }
+        .nav-links { display:flex; gap:36px; list-style:none; align-items:center; }
+        .nav-links a { color:rgba(255,255,255,.65); text-decoration:none; font-size:.78rem; letter-spacing:.18em; text-transform:uppercase; transition:color .3s; position:relative; }
+        .nav-links a::after { content:''; position:absolute; bottom:-5px; left:0; width:0; height:1px; background:var(--gold); transition:width .35s ease; }
+        .nav-links a:hover { color:var(--gold); }
+        .nav-links a:hover::after { width:100%; }
+        .nav-book { padding:11px 28px !important; border:1px solid rgba(201,168,76,.5) !important; color:var(--gold) !important; }
+        .nav-book:hover { background:var(--gold) !important; color:var(--dark) !important; }
+        .nav-book::after { display:none !important; }
+        .nav-hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; }
+        .nav-hamburger span { width:24px; height:1px; background:var(--gold); display:block; transition:all .3s; }
+
+        /* ---- HERO ---- */
+        #hero { position:relative; width:100%; height:100vh; min-height:680px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+        #hero-canvas { position:absolute; inset:0; z-index:2; pointer-events:none; }
+        .hero-video-wrap { position:absolute; inset:0; z-index:0; overflow:hidden; }
+        .hero-video-wrap video { width:100%; height:100%; object-fit:cover; opacity:.38; }
+        .hero-video-wrap::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 55% 35%, rgba(160,100,10,.25) 0%, transparent 55%); }
+        .hero-grad { position:absolute; inset:0; z-index:1; background:linear-gradient(180deg,rgba(6,5,4,.25) 0%,rgba(6,5,4,.05) 40%,rgba(6,5,4,.55) 78%,rgba(6,5,4,1) 100%); }
+        .hero-fallback { position:absolute; inset:0; z-index:0; background:url('room1.png') center 15%/cover no-repeat; }
+        .hero-fallback::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 60% 35%, rgba(107,74,26,.55) 0%, rgba(42,26,6,.7) 35%, rgba(13,8,5,.85) 65%, rgba(6,5,4,.92) 100%); }
+        .hero-light-beam { position:absolute; top:0; left:50%; transform:translateX(-10%); width:55%; height:80%; background:radial-gradient(ellipse at 50% 0%, rgba(220,160,40,.1) 0%, transparent 70%); z-index:1; animation:beamPulse 7s ease-in-out infinite; }
+        @keyframes beamPulse { 0%,100%{opacity:.6;transform:translateX(-10%) scaleX(1)} 50%{opacity:1;transform:translateX(-5%) scaleX(1.1)} }
+        .hero-particles { position:absolute; inset:0; z-index:3; pointer-events:none; }
+        .hero-content { position:relative; z-index:10; text-align:center; max-width:950px; padding:0 48px; }
+        .hero-eyebrow { font-size:.68rem; letter-spacing:.65em; text-transform:uppercase; color:var(--gold); margin-bottom:28px; opacity:0; transform:translateY(18px); }
+        .hero-title { font-family:'Playfair Display',serif; font-size:clamp(2.4rem,5.5vw,5rem); font-weight:500; line-height:1.02; margin-bottom:16px; }
+        #hT1 { white-space:nowrap; }
+        .hero-title span { display:block; background:linear-gradient(145deg,#fff 0%,var(--gold-pale) 40%,var(--gold-light) 70%,#fff 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; opacity:0; transform:translateY(32px); }
+        #hT2 { font-size:clamp(1.15rem,2.6vw,2.2rem); font-weight:400; letter-spacing:.08em; margin-top:10px; }
+        .hero-brand { font-family:'Cormorant Garamond',serif; font-size:clamp(1rem,2.5vw,1.65rem); color:var(--gold); letter-spacing:.35em; text-transform:uppercase; margin-bottom:36px; opacity:0; transform:translateY(18px); }
+        .hero-divider { display:flex; align-items:center; gap:16px; justify-content:center; margin-bottom:32px; opacity:0; }
+        .hero-divider-line { flex:1; max-width:80px; height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,.6)); }
+        .hero-divider-line.rev { background:linear-gradient(270deg,transparent,rgba(201,168,76,.6)); }
+        .hero-divider-gem { width:6px; height:6px; background:var(--gold); transform:rotate(45deg); }
+        .hero-sub { font-size:clamp(.9rem,1.4vw,1.05rem); color:rgba(255,255,255,.6); line-height:1.85; max-width:580px; margin:0 auto 52px; font-weight:300; opacity:0; transform:translateY(18px); }
+        .hero-btns { display:flex; gap:18px; justify-content:center; align-items:center; opacity:0; transform:translateY(18px); flex-wrap:wrap; }
+
+        /* ---- BUTTONS ---- */
+        .btn-primary { position:relative; display:inline-flex; align-items:center; gap:12px; padding:18px 52px; background:linear-gradient(135deg,var(--gold-dark) 0%,var(--gold) 55%,var(--gold-light) 100%); color:var(--dark); font-size:.8rem; font-weight:600; letter-spacing:.25em; text-transform:uppercase; text-decoration:none; border:none; cursor:pointer; overflow:hidden; transition:transform .4s,box-shadow .4s; }
+        .btn-primary::before { content:''; position:absolute; top:0; left:-120%; width:100%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent); transition:left .55s ease; }
+        .btn-primary:hover::before { left:120%; }
+        .btn-primary:hover { transform:translateY(-3px); box-shadow:0 22px 64px rgba(201,168,76,.38); }
+        .btn-outline { display:inline-flex; align-items:center; gap:12px; padding:17px 52px; background:transparent; color:rgba(255,255,255,.78); font-size:.8rem; letter-spacing:.25em; text-transform:uppercase; text-decoration:none; border:1px solid rgba(201,168,76,.35); cursor:pointer; transition:all .4s; }
+        .btn-outline:hover { border-color:var(--gold); color:var(--gold); background:rgba(201,168,76,.06); }
+        .btn-sm { padding:13px 32px; font-size:.75rem; letter-spacing:.2em; }
+
+        /* ---- SCROLL INDICATOR ---- */
+        .hero-scroll { position:absolute; bottom:36px; left:50%; transform:translateX(-50%); z-index:10; display:flex; flex-direction:column; align-items:center; gap:10px; opacity:0; animation:fadeIn 1s 3.5s forwards; }
+        @keyframes fadeIn { to { opacity:.7; } }
+        .scroll-word { font-size:.62rem; letter-spacing:.5em; color:rgba(201,168,76,.6); text-transform:uppercase; }
+        .scroll-bar { width:1px; height:54px; background:linear-gradient(180deg,var(--gold),transparent); animation:scrollAnim 2.2s ease-in-out infinite; }
+        @keyframes scrollAnim { 0%,100%{transform:scaleY(0);transform-origin:top;opacity:0} 30%{opacity:1} 50%{transform:scaleY(1);transform-origin:top} 51%{transform:scaleY(1);transform-origin:bottom} 100%{transform:scaleY(0);transform-origin:bottom} }
+
+        /* ---- SECTION COMMONS ---- */
+        .section-eyebrow { font-size:.65rem; letter-spacing:.65em; text-transform:uppercase; color:var(--gold); margin-bottom:22px; display:block; }
+        .section-title { font-family:'Playfair Display',serif; font-size:clamp(2.4rem,5vw,4.2rem); font-weight:500; line-height:1.08; margin-bottom:26px; }
+        .title-gradient { background:linear-gradient(140deg,#fff 0%,var(--gold-pale) 50%,#fff 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        .section-rule { display:flex; align-items:center; gap:14px; margin-bottom:26px; }
+        .section-rule-line { width:48px; height:1px; background:linear-gradient(90deg,var(--gold),transparent); }
+        .section-rule-dot { width:4px; height:4px; background:var(--gold); transform:rotate(45deg); flex-shrink:0; }
+        .section-sub { font-size:.98rem; color:rgba(255,255,255,.56); line-height:1.85; font-weight:300; max-width:500px; }
+        .sep { height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,.22),transparent); }
+
+        /* ---- POOL ---- */
+        #pool { position:relative; min-height:100vh; display:flex; align-items:center; overflow:hidden; background:#070A0D; }
+        .pool-bg { position:absolute; inset:0; background:url('pool.png') center 42%/cover no-repeat; }
+        .pool-bg-fallback { position:absolute; inset:0; background:radial-gradient(ellipse at 65% 60%, #1B4A5A 0%, #0A2030 40%, #050D15 70%, #030608 100%); }
+        .pool-overlay { position:absolute; inset:0; background:linear-gradient(180deg,rgba(5,8,12,.82) 0%,rgba(5,8,12,.25) 50%,rgba(5,8,12,.82) 100%), linear-gradient(90deg,rgba(5,8,12,.92) 0%,transparent 55%,rgba(5,8,12,.65) 100%); }
+        .pool-teal-grade { position:absolute; inset:0; background:radial-gradient(ellipse at 70% 60%, rgba(0,200,220,.07) 0%, transparent 50%), radial-gradient(ellipse at 30% 40%, rgba(255,140,0,.12) 0%, transparent 45%); }
+        .water-anim { position:absolute; bottom:0; left:0; right:0; height:35%; background:linear-gradient(180deg,transparent,rgba(0,160,210,.06)); animation:waterGlow 5s ease-in-out infinite; }
+        @keyframes waterGlow { 0%,100%{opacity:.4;transform:scaleX(1)} 50%{opacity:.9;transform:scaleX(1.015)} }
+        .pool-inner { position:relative; z-index:5; max-width:1380px; margin:0 auto; padding:120px 80px; display:grid; grid-template-columns:1fr 1.05fr; gap:90px; align-items:center; width:100%; }
+        .pool-cards { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+        /* Glass card */
+        .g-card { background:rgba(8,14,20,.62); border:1px solid rgba(201,168,76,.12); backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px); padding:32px 28px; transition:all .45s cubic-bezier(.25,.46,.45,.94); position:relative; overflow:hidden; }
+        .g-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); opacity:0; transition:opacity .4s; }
+        .g-card::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 50%, rgba(201,168,76,.06) 0%, transparent 70%); opacity:0; transition:opacity .4s; }
+        .g-card:hover { border-color:rgba(201,168,76,.35); transform:translateY(-5px); box-shadow:0 24px 70px rgba(0,0,0,.6), 0 0 50px rgba(201,168,76,.06); }
+        .g-card:hover::before, .g-card:hover::after { opacity:1; }
+        .g-card-icon { width:44px; height:44px; color:var(--gold); margin-bottom:18px; }
+        .g-card-icon svg { width:100%; height:100%; }
+        .g-card-title { font-family:'Playfair Display',serif; font-size:1.05rem; color:#fff; margin-bottom:10px; }
+        .g-card-desc { font-size:.83rem; color:rgba(255,255,255,.46); line-height:1.72; }
+
+        /* Pool card — hidden until GSAP fires */
+        .pc-card { opacity:0; }
+
+        /* ---- SPA ---- */
+        #spa { position:relative; min-height:100vh; display:flex; align-items:center; background:#07060A; overflow:hidden; }
+        .spa-bg { position:absolute; inset:0; background:url('spa.png') center 30%/cover no-repeat; }
+        .spa-bg-fallback { position:absolute; inset:0; background:radial-gradient(ellipse at 55% 45%, #3A2415 0%, #1A0E0A 40%, #080508 70%, #060406 100%); }
+        .spa-overlay { position:absolute; inset:0; background:linear-gradient(90deg,rgba(7,6,10,.97) 0%,rgba(7,6,10,.6) 50%,rgba(7,6,10,.88) 100%), radial-gradient(ellipse at 60% 50%, rgba(160,80,30,.12) 0%, transparent 55%); }
+        .spa-candle-glow { position:absolute; inset:0; background:radial-gradient(ellipse at 55% 45%, rgba(200,100,20,.09) 0%, transparent 50%); animation:candleFlicker 4s ease-in-out infinite; }
+        @keyframes candleFlicker { 0%,100%{opacity:.6} 25%{opacity:.9} 50%{opacity:.5} 75%{opacity:1} }
+        .spa-inner { position:relative; z-index:5; max-width:1380px; margin:0 auto; padding:120px 80px; display:grid; grid-template-columns:1.1fr 1fr; gap:90px; align-items:center; width:100%; }
+        .spa-services { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        .s-card { background:rgba(14,10,16,.68); border:1px solid rgba(201,168,76,.1); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); padding:28px 24px; transition:all .45s; position:relative; overflow:hidden; }
+        .s-card::after { content:''; position:absolute; bottom:0; left:0; width:0; height:2px; background:linear-gradient(90deg,var(--gold-dark),var(--gold-light)); transition:width .5s ease; }
+        .s-card:hover::after { width:100%; }
+        .s-card:hover { border-color:rgba(201,168,76,.3); transform:translateY(-5px); box-shadow:0 20px 60px rgba(0,0,0,.55); }
+        .s-card-num { font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:700; color:rgba(201,168,76,.1); line-height:1; margin-bottom:14px; }
+        .s-card-title { font-family:'Playfair Display',serif; font-size:.98rem; color:var(--gold-light); margin-bottom:9px; }
+        .s-card-desc { font-size:.8rem; color:rgba(255,255,255,.43); line-height:1.72; }
+
+        /* ---- ROOMS ---- */
+        #rooms { background:var(--dark); padding:110px 0 90px; }
+        .rooms-head { text-align:center; padding:0 80px; margin-bottom:70px; }
+        .rooms-head .section-rule { justify-content:center; }
+        .rooms-head .section-sub { max-width:560px; margin:0 auto; }
+        .rooms-track { display:flex; gap:22px; padding:0 80px 20px; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none; }
+        .rooms-track::-webkit-scrollbar { display:none; }
+        .room-card { min-width:370px; height:530px; flex-shrink:0; position:relative; overflow:hidden; scroll-snap-align:start; cursor:pointer; }
+        .rc-bg { position:absolute; inset:0; background-size:cover; background-position:center; transition:transform .7s cubic-bezier(.25,.46,.45,.94); }
+        .room-card:hover .rc-bg { transform:scale(1.09); }
+        .rc-overlay { position:absolute; inset:0; background:linear-gradient(180deg,transparent 28%,rgba(5,4,3,.55) 60%,rgba(5,4,3,.97) 100%); }
+        .rc-glow { position:absolute; inset:0; opacity:0; background:radial-gradient(ellipse at 50% 60%, rgba(201,168,76,.14) 0%, transparent 65%); transition:opacity .45s; }
+        .room-card:hover .rc-glow { opacity:1; }
+        .rc-shine { position:absolute; top:0; left:-100%; width:60%; height:100%; background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.06) 50%,transparent 60%); transition:left .6s ease; }
+        .room-card:hover .rc-shine { left:150%; }
+        .rc-body { position:absolute; bottom:0; left:0; right:0; padding:36px 30px; }
+        .rc-tag { font-size:.62rem; letter-spacing:.45em; text-transform:uppercase; color:var(--gold); margin-bottom:10px; display:block; }
+        .rc-name { font-family:'Playfair Display',serif; font-size:1.55rem; color:#fff; margin-bottom:7px; line-height:1.2; }
+        .rc-detail { font-size:.8rem; color:rgba(255,255,255,.48); margin-bottom:22px; }
+        .rc-btn { display:inline-flex; align-items:center; gap:10px; color:var(--gold); font-size:.73rem; letter-spacing:.22em; text-transform:uppercase; text-decoration:none; border-bottom:1px solid rgba(201,168,76,.3); padding-bottom:5px; transition:all .35s; }
+        .rc-btn:hover { gap:18px; border-bottom-color:var(--gold); }
+        .rooms-nav-wrap { display:flex; justify-content:center; gap:14px; margin-top:36px; padding:0 80px; }
+        .rooms-nav-btn { width:50px; height:50px; border:1px solid rgba(201,168,76,.28); background:transparent; color:var(--gold); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .35s; }
+        .rooms-nav-btn:hover { background:rgba(201,168,76,.09); border-color:var(--gold); }
+
+        /* Room tones (gradient backgrounds for demo) */
+        .rc-r1 { background:url('room2.png') center 25%/cover no-repeat, radial-gradient(ellipse at 50% 25%, #9A6B20 0%, #3D2808 35%, #0E0904 70%, #060504 100%); }
+        .rc-r2 { background:url('room1.png') center 20%/cover no-repeat, radial-gradient(ellipse at 40% 55%, #5A3512 0%, #2C180A 40%, #0A0705 70%, #050403 100%); }
+        .rc-r3 { background:url('room3.png') center 25%/cover no-repeat, radial-gradient(ellipse at 55% 35%, #2A3D50 0%, #101820 40%, #07090E 70%, #050508 100%); }
+        .rc-r4 { background:url('room4.png') center 20%/cover no-repeat, radial-gradient(ellipse at 50% 50%, #704020 0%, #3A2010 40%, #0E0908 70%, #060504 100%); }
+
+        /* ---- STATS ---- */
+        #stats { padding:80px; background:linear-gradient(135deg,#0C0800 0%,#1C1200 50%,#0C0800 100%); border-top:1px solid rgba(201,168,76,.08); border-bottom:1px solid rgba(201,168,76,.08); }
+        .stats-grid { max-width:1380px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); }
+        .stat-item { text-align:center; padding:40px 20px; border-right:1px solid rgba(201,168,76,.08); }
+        .stat-item:last-child { border-right:none; }
+        .stat-num { font-family:'Playfair Display',serif; font-size:3.8rem; font-weight:500; color:var(--gold); line-height:1; margin-bottom:10px; }
+        .stat-num sup { font-size:2rem; }
+        .stat-lbl { font-size:.72rem; letter-spacing:.35em; text-transform:uppercase; color:rgba(255,255,255,.42); }
+
+        /* ---- AMENITIES ---- */
+        #amenities { padding:110px 80px; background:var(--dark-2); }
+        .amenities-inner { max-width:1380px; margin:0 auto; text-align:center; }
+        .amenities-inner .section-rule { justify-content:center; }
+        .am-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:2px; margin-top:72px; background:rgba(201,168,76,.06); }
+        .am-item { background:var(--dark-2); padding:48px 28px; display:flex; flex-direction:column; align-items:center; gap:16px; transition:all .4s; border:1px solid transparent; cursor:default; }
+        .am-item:hover { background:var(--dark-3); border-color:rgba(201,168,76,.14); transform:translateY(-5px); }
+        .am-icon { width:52px; height:52px; color:var(--gold); }
+        .am-icon svg { width:100%; height:100%; }
+        .am-name { font-family:'Playfair Display',serif; font-size:.98rem; color:#fff; }
+        .am-desc { font-size:.79rem; color:rgba(255,255,255,.42); text-align:center; line-height:1.65; }
+
+        /* ---- TESTIMONIALS ---- */
+        #testimonials { padding:110px 80px; background:var(--dark); }
+        .testi-inner { max-width:1380px; margin:0 auto; text-align:center; }
+        .testi-inner .section-rule { justify-content:center; }
+        .testi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:72px; }
+        .t-card { background:rgba(14,11,7,.6); border:1px solid rgba(201,168,76,.1); padding:48px 36px; position:relative; transition:all .45s; }
+        .t-card:hover { border-color:rgba(201,168,76,.3); transform:translateY(-5px); box-shadow:0 24px 70px rgba(0,0,0,.5); }
+        .t-quote { font-family:'Playfair Display',serif; font-size:5rem; color:var(--gold); opacity:.15; line-height:.8; margin-bottom:8px; }
+        .t-text { font-family:'Cormorant Garamond',serif; font-size:1.08rem; font-style:italic; color:rgba(255,255,255,.72); line-height:1.9; margin-bottom:30px; }
+        .t-stars { display:flex; gap:4px; justify-content:center; color:var(--gold); font-size:.88rem; margin-bottom:18px; }
+        .t-author { font-size:.78rem; letter-spacing:.22em; text-transform:uppercase; color:var(--gold); }
+        .t-loc { font-size:.73rem; color:rgba(255,255,255,.32); margin-top:5px; }
+
+        /* ---- BOOKING ---- */
+        #booking { padding:110px 80px; background:radial-gradient(ellipse at center, rgba(201,168,76,.08) 0%, transparent 65%), linear-gradient(180deg,var(--dark-2) 0%,#0F0A00 50%,var(--dark-2) 100%); border-top:1px solid rgba(201,168,76,.07); text-align:center; }
+        .booking-inner { max-width:820px; margin:0 auto; }
+        .booking-inner .section-rule { justify-content:center; }
+        .booking-form { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:2px; margin-top:50px; background:rgba(201,168,76,.1); }
+        .bfield-wrap { background:rgba(8,6,4,.92); padding:0; cursor:pointer; position:relative; }
+        .bfield-wrap label { font-size:.6rem; letter-spacing:.35em; text-transform:uppercase; color:var(--gold); display:block; padding:14px 22px 4px; pointer-events:none; }
+        .bfield-label { font-size:.6rem; letter-spacing:.35em; text-transform:uppercase; color:var(--gold); margin-bottom:5px; display:block; }
+        .bfield {
+            background:transparent; border:none; outline:none;
+            color:#fff; font-size:.9rem; font-family:'Inter',sans-serif;
+            width:100%; display:block;
+            padding:0 22px 14px; cursor:pointer;
+            /* Make the native calendar icon gold on webkit */
+            color-scheme: dark;
+            -webkit-appearance: none; appearance: none;
+        }
+        /* Custom calendar icon overlay */
+        .bfield-wrap.is-date::after {
+            content:'📅';
+            position:absolute; right:14px; top:50%; transform:translateY(-50%);
+            font-size:.9rem; pointer-events:none; opacity:.55;
+        }
+        input[type="date"].bfield::-webkit-calendar-picker-indicator {
+            opacity:.5; filter:invert(1) sepia(1) saturate(3) hue-rotate(10deg);
+            cursor:pointer; padding:0; margin:0;
+            width:18px; height:18px;
+        }
+        input[type="date"].bfield::-webkit-inner-spin-button { display:none; }
+        .bfield::placeholder { color:rgba(255,255,255,.35); }
+        .bfield option { background:#0A0805; }
+        select.bfield { padding-right:36px; }
+        .booking-note { margin-top:20px; font-size:.74rem; color:rgba(255,255,255,.28); letter-spacing:.08em; }
+        .booking-note span { color:var(--gold); }
+
+        /* ---- CONTACT ---- */
+        #contact { padding:110px 80px; background:var(--dark-2); }
+        .contact-inner { max-width:1380px; margin:0 auto; }
+        .contact-inner .section-rule { margin-bottom:60px; }
+        .contact-grid { display:grid; grid-template-columns:1fr 1.6fr; gap:60px; align-items:start; }
+        .contact-info { display:flex; flex-direction:column; gap:28px; }
+        .contact-info-row { display:flex; gap:18px; align-items:flex-start; padding:24px; background:rgba(14,11,7,.6); border:1px solid rgba(201,168,76,.1); transition:border-color .35s; }
+        .contact-info-row:hover { border-color:rgba(201,168,76,.3); }
+        .ci-icon { width:42px; height:42px; background:rgba(201,168,76,.08); border:1px solid rgba(201,168,76,.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--gold); }
+        .ci-icon svg { width:20px; height:20px; }
+        .ci-label { font-size:.62rem; letter-spacing:.4em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; display:block; }
+        .ci-value { font-size:.9rem; color:rgba(255,255,255,.72); line-height:1.65; }
+        .ci-value a { color:rgba(255,255,255,.72); text-decoration:none; transition:color .3s; }
+        .ci-value a:hover { color:var(--gold-light); }
+        .contact-map-wrap { position:relative; }
+        .contact-map-wrap::before { content:''; position:absolute; inset:-1px; border:1px solid rgba(201,168,76,.2); pointer-events:none; z-index:1; }
+        .contact-map-wrap iframe { display:block; width:100%; height:480px; border:0; filter:invert(100%) hue-rotate(180deg) brightness(90%) contrast(85%) saturate(60%); }
+        .contact-map-label { display:flex; align-items:center; gap:10px; margin-top:14px; }
+        .contact-map-label a { font-size:.78rem; color:var(--gold); letter-spacing:.12em; text-decoration:none; border-bottom:1px solid rgba(201,168,76,.3); padding-bottom:2px; transition:border-color .3s; }
+        .contact-map-label a:hover { border-color:var(--gold); }
+        @media(max-width:1100px) {
+            .contact-grid { grid-template-columns:1fr; }
+            #contact { padding:80px 30px; }
+        }
+
+        /* ---- FOOTER ---- */
+        footer { background:#040302; border-top:1px solid rgba(201,168,76,.08); padding:80px; }
+        .footer-inner { max-width:1380px; margin:0 auto; }
+        .footer-glow-line { height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,.3),transparent); margin-bottom:60px; }
+        .footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:70px; margin-bottom:60px; }
+        .footer-logo-main { font-family:'Playfair Display',serif; font-size:1.9rem; color:var(--gold); font-weight:600; letter-spacing:.06em; }
+        .footer-logo-sub { font-size:.58rem; letter-spacing:.5em; color:rgba(201,168,76,.48); text-transform:uppercase; margin-top:2px; margin-bottom:20px; }
+        .footer-about { font-size:.83rem; color:rgba(255,255,255,.38); line-height:1.82; max-width:280px; margin-bottom:28px; }
+        .footer-socials { display:flex; gap:12px; }
+        .soc-btn { width:38px; height:38px; border:1px solid rgba(201,168,76,.2); display:flex; align-items:center; justify-content:center; color:rgba(201,168,76,.55); text-decoration:none; transition:all .35s; }
+        .soc-btn:hover { border-color:var(--gold); color:var(--gold); background:rgba(201,168,76,.07); }
+        .footer-col-head { font-size:.68rem; letter-spacing:.45em; text-transform:uppercase; color:var(--gold); margin-bottom:26px; }
+        .footer-links { list-style:none; display:flex; flex-direction:column; gap:13px; }
+        .footer-links a { font-size:.83rem; color:rgba(255,255,255,.42); text-decoration:none; letter-spacing:.04em; transition:color .3s; }
+        .footer-links a:hover { color:var(--gold-light); }
+        .footer-contact-row { display:flex; gap:12px; margin-bottom:14px; align-items:flex-start; }
+        .fci { color:var(--gold); font-size:.85rem; margin-top:1px; flex-shrink:0; }
+        .fct { font-size:.81rem; color:rgba(255,255,255,.42); line-height:1.65; }
+        .wa-footer-btn { display:inline-flex; align-items:center; gap:10px; background:#25D366; color:#fff; padding:12px 24px; font-size:.78rem; letter-spacing:.12em; text-decoration:none; font-weight:500; transition:background .3s; margin-top:18px; }
+        .wa-footer-btn:hover { background:#1da851; }
+        .footer-bottom { display:flex; justify-content:space-between; align-items:center; padding-top:28px; border-top:1px solid rgba(201,168,76,.06); }
+        .footer-copy { font-size:.75rem; color:rgba(255,255,255,.27); }
+        .footer-legal { display:flex; gap:24px; }
+        .footer-legal a { font-size:.73rem; color:rgba(255,255,255,.28); text-decoration:none; transition:color .3s; }
+        .footer-legal a:hover { color:rgba(201,168,76,.65); }
+
+        /* ---- WHATSAPP FLOAT ---- */
+        .wa-float { position:fixed; bottom:32px; right:32px; z-index:999; width:58px; height:58px; background:#25D366; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none; box-shadow:0 8px 32px rgba(37,211,102,.28); animation:waPulse 3.5s ease-in-out infinite; transition:transform .3s; }
+        .wa-float:hover { transform:translateY(-4px) scale(1.1); box-shadow:0 16px 50px rgba(37,211,102,.45); }
+        @keyframes waPulse { 0%,100%{box-shadow:0 8px 32px rgba(37,211,102,.28)} 50%{box-shadow:0 8px 50px rgba(37,211,102,.5), 0 0 0 12px rgba(37,211,102,.04)} }
+
+        /* ---- PARTICLES ---- */
+        .pt-wrap { position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:3; }
+        .pt { position:absolute; border-radius:50%; opacity:0; animation:ptRise linear infinite; }
+        @keyframes ptRise { 0%{transform:translateY(0) translateX(0);opacity:0} 10%{opacity:.7} 90%{opacity:.15} 100%{transform:translateY(-110vh) translateX(var(--dx));opacity:0} }
+
+        /* ---- STEAM ---- */
+        .steam { position:absolute; border-radius:50%; background:rgba(255,255,255,.1); filter:blur(4px); animation:steamUp linear infinite; }
+        @keyframes steamUp { 0%{transform:translateY(0) scale(1);opacity:.25} 50%{transform:translateY(-140px) translateX(15px) scale(2.5);opacity:.08} 100%{transform:translateY(-280px) translateX(-10px) scale(0.5);opacity:0} }
+
+        /* ---- REVEAL ---- */
+        .rv { opacity:0; transform:translateY(36px); }
+        .rv.in { animation:rvIn .85s cubic-bezier(.16,1,.3,1) forwards; }
+        .rv.d1 { animation-delay:.1s; } .rv.d2 { animation-delay:.2s; } .rv.d3 { animation-delay:.3s; } .rv.d4 { animation-delay:.4s; }
+        @keyframes rvIn { to { opacity:1; transform:translateY(0); } }
+
+        /* ---- RESPONSIVE ---- */
+        @media(max-width:1100px) {
+            nav { padding:20px 30px; }
+            nav.scrolled { padding:14px 30px; }
+            .nav-links { display:none; }
+            .nav-hamburger { display:flex; }
+            .pool-inner, .spa-inner { grid-template-columns:1fr; gap:50px; padding:80px 30px; }
+            .pool-cards, .spa-services { grid-template-columns:1fr 1fr; }
+            .stats-grid { grid-template-columns:repeat(2,1fr); }
+            .testi-grid { grid-template-columns:1fr; max-width:600px; margin:72px auto 0; }
+            .booking-form { grid-template-columns:1fr 1fr; }
+            .footer-grid { grid-template-columns:1fr 1fr; gap:40px; }
+            .am-grid { grid-template-columns:repeat(2,1fr); }
+            #stats, #amenities, #testimonials, #booking { padding:80px 30px; }
+            footer { padding:60px 30px; }
+            .rooms-track, .rooms-nav-wrap, .rooms-head { padding-left:30px; padding-right:30px; }
+        }
+        @media(max-width:640px) {
+            .hero-btns { flex-direction:column; }
+            .pool-cards, .spa-services { grid-template-columns:1fr; }
+            .booking-form { grid-template-columns:1fr; }
+            .room-card { min-width:300px; }
+            .footer-grid { grid-template-columns:1fr; }
+            .footer-bottom { flex-direction:column; gap:14px; text-align:center; }
+            .am-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- WhatsApp Float -->
+<a href="https://wa.me/9779762917929" class="wa-float" target="_blank" title="Book via WhatsApp">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<!-- Loader -->
+<div id="loader">
+    <div class="loader-monogram"><span>F</span></div>
+    <div class="loader-brand">Hotel Faben</div>
+    <div class="loader-bar"><div class="loader-bar-fill" id="loaderFill"></div></div>
+    <div class="loader-pct" id="loaderPct">0%</div>
+</div>
+
+<!-- Nav -->
+<nav id="navbar">
+    <a href="#hero" class="nav-logo">
+        <span class="nav-logo-main">Hotel Faben</span>
+        <span class="nav-logo-sub">Inn &amp; Spa</span>
+    </a>
+    <ul class="nav-links">
+        <li><a href="#rooms">Rooms</a></li>
+        <li><a href="#spa">Spa</a></li>
+        <li><a href="#pool">Pool</a></li>
+        <li><a href="#amenities">Amenities</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="#booking" class="nav-book">Book Now</a></li>
+    </ul>
+    <div class="nav-hamburger" id="hamburger">
+        <span></span><span></span><span></span>
+    </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<section id="hero">
+    <div class="hero-fallback"></div>
+    <div class="hero-video-wrap">
+        <video autoplay muted loop playsinline id="heroVideo">
+            <source src="hotel.mp4" type="video/mp4">
+        </video>
+    </div>
+    <div class="hero-grad"></div>
+    <div class="hero-light-beam"></div>
+    <div class="hero-particles" id="heroPt"></div>
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-content">
+        <div class="hero-eyebrow" id="hEyebrow">Sundarharicha-4, Morang, Nepal — 3 km from Itahari</div>
+        <h1 class="hero-title">
+            <span id="hT1">PPC Model Hotel</span>
+            <span id="hT2">P — Private &nbsp;·&nbsp; P — Peaceful &nbsp;·&nbsp; C — Clean</span>
+        </h1>
+        <div class="hero-brand" id="hBrand">Hotel Faben Inn</div>
+        <div class="hero-divider" id="hDiv">
+            <div class="hero-divider-line"></div>
+            <div class="hero-divider-gem"></div>
+            <div class="hero-divider-line rev"></div>
+        </div>
+        <p class="hero-sub" id="hSub">Luxury rooms, swimming pool, spa wellness &amp; fine dining — an affordable luxury escape in the heart of Morang, Nepal.</p>
+        <div class="hero-btns" id="hBtns">
+            <a href="javascript:void(0)" onclick="bookOnWhatsApp()" class="btn-primary">
+                Book Your Stay
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+            <a href="#rooms" class="btn-outline">Explore Rooms</a>
+        </div>
+    </div>
+    <div class="hero-scroll">
+        <span class="scroll-word">Scroll</span>
+        <div class="scroll-bar"></div>
+    </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ===================== POOL ===================== -->
+<section id="pool">
+    <div class="pool-bg-fallback"></div>
+    <div class="pool-bg" id="poolBg"></div>
+    <div class="pool-overlay"></div>
+    <div class="pool-teal-grade"></div>
+    <div class="water-anim"></div>
+    <div class="pt-wrap" id="poolPt"></div>
+    <div class="pool-inner">
+        <div class="pool-text">
+            <span class="section-eyebrow rv d1">Outdoor Recreation</span>
+            <h2 class="section-title title-gradient rv d2">Gokulam Resort<br>Swimming Pool</h2>
+            <div class="section-rule rv d3"><div class="section-rule-line"></div><div class="section-rule-dot"></div></div>
+            <p class="section-sub rv d3">Our guests enjoy access to the beautiful Gokulam Resort swimming pool, located right in front of our hotel. Take a refreshing dip and unwind in a stunning outdoor setting. <span style="color:var(--gold);font-weight:500">Rs. 300 per person.</span></p>
+            <div style="margin-top:40px" class="rv d4">
+                <a href="javascript:void(0)" onclick="bookOnWhatsApp()" class="btn-primary btn-sm">Reserve Pool Access</a>
+            </div>
+        </div>
+        <div class="pool-cards">
+            <div class="g-card pc-card">
+                <div class="g-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+                <h3 class="g-card-title">Pool Access</h3>
+                <p class="g-card-desc">Gokulam Resort pool — open daily for Hotel Faben Inn guests. Rs. 300 per person.</p>
+            </div>
+            <div class="g-card pc-card">
+                <div class="g-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
+                <h3 class="g-card-title">Poolside Bar</h3>
+                <p class="g-card-desc">Tropical cocktails, cold beverages and gourmet light bites delivered to your lounger.</p>
+            </div>
+            <div class="g-card pc-card">
+                <div class="g-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                <h3 class="g-card-title">Family Friendly</h3>
+                <p class="g-card-desc">Dedicated children's splash zone with professional lifeguard supervision all day.</p>
+            </div>
+            <div class="g-card pc-card">
+                <div class="g-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                <h3 class="g-card-title">Relaxation Zone</h3>
+                <p class="g-card-desc">Premium sun loungers and private cabanas with butler towel service included.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ===================== SPA ===================== -->
+<section id="spa">
+    <div class="spa-bg-fallback"></div>
+    <div class="spa-bg" id="spaBg"></div>
+    <div class="spa-overlay"></div>
+    <div class="spa-candle-glow"></div>
+    <div class="pt-wrap" id="spaPt"></div>
+    <div id="steamWrap"></div>
+    <div class="spa-inner">
+        <div class="spa-services">
+            <div class="s-card rv d1">
+                <div class="s-card-num">01</div>
+                <h3 class="s-card-title">Deep Tissue Massage</h3>
+                <p class="s-card-desc">Targeted muscle relief through expert deep-pressure therapy. <span style="color:var(--gold);font-size:.78rem">Rs. 2,000</span></p>
+            </div>
+            <div class="s-card rv d2">
+                <div class="s-card-num">02</div>
+                <h3 class="s-card-title">Ayurvedic Massage</h3>
+                <p class="s-card-desc">Ancient healing with premium herbal oils &amp; full cleansing. <span style="color:var(--gold);font-size:.78rem">Rs. 2,000</span></p>
+            </div>
+            <div class="s-card rv d3">
+                <div class="s-card-num">03</div>
+                <h3 class="s-card-title">Cupping &amp; Scrub</h3>
+                <p class="s-card-desc">Signature 90-min package: cupping, cleansing &amp; full body scrub. <span style="color:var(--gold);font-size:.78rem">Rs. 2,500</span></p>
+            </div>
+            <div class="s-card rv d4">
+                <div class="s-card-num">04</div>
+                <h3 class="s-card-title">Head Massage</h3>
+                <p class="s-card-desc">30-min scalp &amp; neck therapy for deep mental relaxation. <span style="color:var(--gold);font-size:.78rem">Rs. 1,000</span></p>
+            </div>
+        </div>
+        <div class="spa-text">
+            <span class="section-eyebrow rv d1">Wellness &amp; Healing</span>
+            <h2 class="section-title title-gradient rv d2">Luxury Wellness<br>&amp; Spa</h2>
+            <div class="section-rule rv d3"><div class="section-rule-line"></div><div class="section-rule-dot"></div></div>
+            <p class="section-sub rv d3">Professional massage and spa therapies starting from Rs. 700. Our certified therapists offer Ayurvedic, deep tissue, cupping, waxing, facial and signature package treatments in a serene sanctuary.</p>
+            <div style="margin-top:44px" class="rv d4">
+                <a href="javascript:void(0)" onclick="bookSpa()" class="btn-primary btn-sm">Book a Treatment</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ===================== ROOMS ===================== -->
+<section id="rooms">
+    <div class="rooms-head">
+        <span class="section-eyebrow rv">Luxury Accommodation</span>
+        <h2 class="section-title title-gradient rv d1">Our Rooms &amp; Suites</h2>
+        <div class="section-rule rv d2" style="justify-content:center"><div class="section-rule-line"></div><div class="section-rule-dot"></div></div>
+        <p class="section-sub rv d3">7 distinct room types crafted for comfort — from cosy superior rooms to grand family suites, all with AC, TV, modern amenities, and warm walnut interiors.</p>
+    </div>
+    <div class="rooms-track" id="roomsTrack">
+        <div class="room-card" data-tilt>
+            <div class="rc-bg rc-r1" id="rcBg1"></div>
+            <div class="rc-overlay"></div>
+            <div class="rc-glow"></div>
+            <div class="rc-shine"></div>
+            <div class="rc-body">
+                <span class="rc-tag">King Room</span>
+                <h3 class="rc-name">Deluxe King with Bathtub</h3>
+                <p class="rc-detail">King Bed · Bathtub · AC + TV</p>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;margin-bottom:18px">
+                    <span style="color:var(--gold);font-family:'Playfair Display',serif;font-size:1.1rem">Rs. 3,500<span style="font-size:.75rem;color:rgba(201,168,76,.7)">/night</span></span>
+                    <span style="font-size:.72rem;color:rgba(255,255,255,.38)">Rs. 3,800 w/ breakfast</span>
+                </div>
+                <a href="javascript:void(0)" onclick="bookRoom('Deluxe King with Bathtub')" class="rc-btn">Book Now →</a>
+            </div>
+        </div>
+        <div class="room-card" data-tilt>
+            <div class="rc-bg rc-r2" id="rcBg2"></div>
+            <div class="rc-overlay"></div>
+            <div class="rc-glow"></div>
+            <div class="rc-shine"></div>
+            <div class="rc-body">
+                <span class="rc-tag">Balcony Room</span>
+                <h3 class="rc-name">Premium Balcony Room</h3>
+                <p class="rc-detail">King Bed · Private Balcony · Panoramic View</p>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;margin-bottom:18px">
+                    <span style="color:var(--gold);font-family:'Playfair Display',serif;font-size:1.1rem">Rs. 3,500<span style="font-size:.75rem;color:rgba(201,168,76,.7)">/night</span></span>
+                    <span style="font-size:.72rem;color:rgba(255,255,255,.38)">Rs. 3,800 w/ breakfast</span>
+                </div>
+                <a href="javascript:void(0)" onclick="bookRoom('Premium Balcony Room')" class="rc-btn">Book Now →</a>
+            </div>
+        </div>
+        <div class="room-card" data-tilt>
+            <div class="rc-bg rc-r3" id="rcBg3"></div>
+            <div class="rc-overlay"></div>
+            <div class="rc-glow"></div>
+            <div class="rc-shine"></div>
+            <div class="rc-body">
+                <span class="rc-tag">Family Room</span>
+                <h3 class="rc-name">Deluxe Family Room</h3>
+                <p class="rc-detail">Multi Bed · Up to 4 Guests · AC + TV</p>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;margin-bottom:18px">
+                    <span style="color:var(--gold);font-family:'Playfair Display',serif;font-size:1.1rem">Rs. 3,800<span style="font-size:.75rem;color:rgba(201,168,76,.7)">/night</span></span>
+                    <span style="font-size:.72rem;color:rgba(255,255,255,.38)">Rs. 4,300 w/ breakfast</span>
+                </div>
+                <a href="javascript:void(0)" onclick="bookRoom('Deluxe Family Room')" class="rc-btn">Book Now →</a>
+            </div>
+        </div>
+        <div class="room-card" data-tilt>
+            <div class="rc-bg rc-r4" id="rcBg4"></div>
+            <div class="rc-overlay"></div>
+            <div class="rc-glow"></div>
+            <div class="rc-shine"></div>
+            <div class="rc-body">
+                <span class="rc-tag">Superior</span>
+                <h3 class="rc-name">Superior King Room</h3>
+                <p class="rc-detail">King Bed · City View · AC + TV</p>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;margin-bottom:18px">
+                    <span style="color:var(--gold);font-family:'Playfair Display',serif;font-size:1.1rem">Rs. 2,200<span style="font-size:.75rem;color:rgba(201,168,76,.7)">/night</span></span>
+                    <span style="font-size:.72rem;color:rgba(255,255,255,.38)">Rs. 2,500 w/ breakfast</span>
+                </div>
+                <a href="javascript:void(0)" onclick="bookRoom('Superior King Room')" class="rc-btn">Book Now →</a>
+            </div>
+        </div>
+    </div>
+    <div class="rooms-nav-wrap">
+        <button class="rooms-nav-btn" onclick="scrollRooms(-1)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button class="rooms-nav-btn" onclick="scrollRooms(1)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+    </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ===================== STATS ===================== -->
+<section id="stats">
+    <div class="stats-grid">
+        <div class="stat-item rv">
+            <div class="stat-num"><span id="s1">0</span><sup>+</sup></div>
+            <div class="stat-lbl">Room Types</div>
+        </div>
+        <div class="stat-item rv d1">
+            <div class="stat-num"><span id="s2">0</span></div>
+            <div class="stat-lbl">Dining Venues</div>
+        </div>
+        <div class="stat-item rv d2">
+            <div class="stat-num"><span id="s3">0</span><sup>+</sup></div>
+            <div class="stat-lbl">Spa Services</div>
+        </div>
+        <div class="stat-item rv d3">
+            <div class="stat-num"><span id="s4">0</span><sup>/7</sup></div>
+            <div class="stat-lbl">Guest Service</div>
+        </div>
+    </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ===================== AMENITIES ===================== -->
+<section id="amenities">
+    <div class="amenities-inner">
+        <span class="section-eyebrow rv">World Class</span>
+        <h2 class="section-title title-gradient rv d1">Premium Amenities</h2>
+        <div class="section-rule rv d2" style="justify-content:center"><div class="section-rule-line"></div><div class="section-rule-dot"></div></div>
+        <div class="am-grid">
+            <div class="am-item rv"><div class="am-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><div class="am-name">High-Speed WiFi</div><div class="am-desc">Gigabit fiber optic throughout the entire property</div></div>
+            <div class="am-item rv d1"><div class="am-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="am-name">24/7 Concierge</div><div class="am-desc">Round-the-clock personalized luxury service</div></div>
+            <div class="am-item rv d2"><div class="am-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div><div class="am-name">Fine Dining</div><div class="am-desc">Indoor &amp; outdoor restaurant dining</div></div>
+            <div class="am-item rv d3"><div class="am-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="2" width="8" height="20" rx="1"/><path d="M8 6H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/><path d="M16 6h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3"/><line x1="12" y1="6" x2="12" y2="18"/></svg></div><div class="am-name">Lift Facility</div><div class="am-desc">Modern elevator for easy access to all floors</div></div>
+            <div class="am-item rv"><div class="am-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div class="am-name">Airport Transfer</div><div class="am-desc">Luxury vehicle pickup and drop service</div></div>
+            <div class="am-item rv d1"><div class="am-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="am-name">Private Security</div><div class="am-desc">Discreet 24-hour security for total peace</div></div>
+            <div class="am-item rv d2"><div class="am-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div class="am-name">Free Parking</div><div class="am-desc">Complimentary private parking for all guests</div></div>
+            <div class="am-item rv d3"><div class="am-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a9 9 0 0 1 9 9c0 4.17-2.84 7.67-6.72 8.65A9 9 0 1 1 12 2z"/><path d="M12 8v4l3 3"/><path d="M3.05 11a9 9 0 0 0 .49 3"/><path d="M5.07 17.5A9 9 0 0 0 9 20.93"/></svg></div><div class="am-name">Peaceful Environment</div><div class="am-desc">Serene surroundings for total rest &amp; relaxation</div></div>
+        </div>
+    </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ===================== TESTIMONIALS ===================== -->
+<section id="testimonials">
+    <div class="testi-inner">
+        <span class="section-eyebrow rv">Real Guest Experiences</span>
+        <h2 class="section-title title-gradient rv d1">Private. Peaceful. Clean.</h2>
+        <div class="section-rule rv d2" style="justify-content:center"><div class="section-rule-line"></div><div class="section-rule-dot"></div></div>
+        <div class="testi-grid">
+            <div class="t-card rv">
+                <div class="t-quote">"</div>
+                <p class="t-text">We celebrated our anniversary here and it was truly magical. The room was spotlessly clean, the atmosphere was so peaceful — no noise, no rush. We felt completely private. Perfect for couples who want to escape.</p>
+                <div class="t-stars">★★★★★</div>
+                <div class="t-author">Sanjay &amp; Deepa Karki</div>
+                <div class="t-loc">Anniversary Stay — Kathmandu</div>
+            </div>
+            <div class="t-card rv d1">
+                <div class="t-quote">"</div>
+                <p class="t-text">The most peaceful hotel we have ever stayed at. The surroundings are so calm and quiet — we slept better than we have in years. The room was immaculate and every corner was incredibly clean. We will definitely return.</p>
+                <div class="t-stars">★★★★★</div>
+                <div class="t-author">Rohan &amp; Priya Thapa</div>
+                <div class="t-loc">Romantic Getaway — Pokhara</div>
+            </div>
+            <div class="t-card rv d2">
+                <div class="t-quote">"</div>
+                <p class="t-text">Hotel Faben Inn is a hidden gem near Itahari. Very private, very clean, and the staff gives you your own space. My partner and I loved every moment. The spa treatment made it even more special. Highly recommended for couples.</p>
+                <div class="t-stars">★★★★★</div>
+                <div class="t-author">Bikash &amp; Sunita Rai</div>
+                <div class="t-loc">Couple Stay — Dharan</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ===================== BOOKING ===================== -->
+<section id="booking">
+    <div class="booking-inner">
+        <span class="section-eyebrow rv">Reserve Your Stay</span>
+        <h2 class="section-title title-gradient rv d1">Book Your<br>Luxury Experience</h2>
+        <div class="section-rule rv d2" style="justify-content:center"><div class="section-rule-line"></div><div class="section-rule-dot"></div></div>
+        <p class="section-sub rv d3" style="margin:0 auto;text-align:center">Begin your journey to ultimate comfort and elegance. Your perfect stay awaits.</p>
+        <div class="booking-form rv d4">
+            <div class="bfield-wrap is-date" onclick="document.getElementById('bCheckIn').showPicker&&document.getElementById('bCheckIn').showPicker()">
+                <label for="bCheckIn">Check In</label>
+                <input type="date" class="bfield" id="bCheckIn">
+            </div>
+            <div class="bfield-wrap is-date" onclick="document.getElementById('bCheckOut').showPicker&&document.getElementById('bCheckOut').showPicker()">
+                <label for="bCheckOut">Check Out</label>
+                <input type="date" class="bfield" id="bCheckOut">
+            </div>
+            <div class="bfield-wrap">
+                <label for="bGuests">Guests</label>
+                <select class="bfield" id="bGuests">
+                    <option>1 Guest</option>
+                    <option>2 Guests</option>
+                    <option>3 Guests</option>
+                    <option>4 Guests</option>
+                    <option>4+ Guests</option>
+                </select>
+            </div>
+            <button class="btn-primary" id="bookBtn" onclick="bookOnWhatsApp()" style="white-space:nowrap;padding:0 36px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Check Availability
+            </button>
+        </div>
+        <div class="booking-note rv">Check-in: 2:00 PM &nbsp;|&nbsp; Check-out: 12:00 PM &nbsp;|&nbsp; Call / WhatsApp: <span>+977-9762917929</span></div>
+    </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ===================== CONTACT ===================== -->
+<section id="contact">
+    <div class="contact-inner">
+        <span class="section-eyebrow rv">Find Us</span>
+        <h2 class="section-title title-gradient rv d1">Contact &amp; Location</h2>
+        <div class="section-rule rv d2"><div class="section-rule-line"></div><div class="section-rule-dot"></div></div>
+
+        <div class="contact-grid">
+            <!-- Info cards -->
+            <div class="contact-info">
+                <div class="contact-info-row rv">
+                    <div class="ci-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    </div>
+                    <div>
+                        <span class="ci-label">Address</span>
+                        <div class="ci-value">Sundarharicha-4, Morang, Nepal<br>In front of Gokulam Resort Gate<br>3 km from Itahari</div>
+                    </div>
+                </div>
+                <div class="contact-info-row rv d1">
+                    <div class="ci-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16.92z"/></svg>
+                    </div>
+                    <div>
+                        <span class="ci-label">Phone &amp; WhatsApp</span>
+                        <div class="ci-value">
+                            <a href="tel:+9779762917929">+977-9762917929</a><br>
+                            <a href="https://wa.me/9779762917929" target="_blank" style="color:var(--gold)">Chat on WhatsApp →</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-info-row rv d2">
+                    <div class="ci-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    </div>
+                    <div>
+                        <span class="ci-label">Email</span>
+                        <div class="ci-value"><a href="mailto:fabeninn@gmail.com">fabeninn@gmail.com</a></div>
+                    </div>
+                </div>
+                <div class="contact-info-row rv d3">
+                    <div class="ci-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div>
+                        <span class="ci-label">Check-In / Check-Out</span>
+                        <div class="ci-value">Check-In: 2:00 PM<br>Check-Out: 12:00 PM (Noon)</div>
+                    </div>
+                </div>
+                <div class="contact-info-row rv d4" style="background:rgba(201,168,76,.06);border-color:rgba(201,168,76,.2)">
+                    <div class="ci-icon" style="background:rgba(37,211,102,.1);border-color:rgba(37,211,102,.3);color:#25D366">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    </div>
+                    <div>
+                        <span class="ci-label" style="color:#25D366">Book via WhatsApp</span>
+                        <div class="ci-value">
+                            <a href="https://wa.me/9779762917929?text=Hello%20Hotel%20Faben%20Inn!%20I%20would%20like%20to%20make%20a%20reservation." target="_blank" style="color:#25D366;font-weight:500">+977-9762917929 — Tap to Chat →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Google Map -->
+            <div class="rv d2">
+                <div class="contact-map-wrap">
+                    <iframe
+                        src="https://www.google.com/maps?q=Hotel+Faben+Inn+Sundarharicha+Morang+Nepal&output=embed"
+                        allowfullscreen=""
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Hotel Faben Inn Location">
+                    </iframe>
+                </div>
+                <div class="contact-map-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <a href="https://www.google.com/maps/search/Hotel+Faben+Inn+Sundarharicha+Morang+Nepal" target="_blank">
+                        Open in Google Maps — Get Directions →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+    <div class="footer-inner">
+        <div class="footer-glow-line"></div>
+        <div class="footer-grid">
+            <div>
+                <div class="footer-logo-main">Hotel Faben</div>
+                <div class="footer-logo-sub">Inn — Sundarharicha-4, Morang, Nepal</div>
+                <p class="footer-about">A luxurious yet affordable hotel offering comfortable rooms with modern amenities, a relaxing spa, swimming pool, private parking, and fine dining. Perfect for couples, families, and business travelers.</p>
+                <div class="footer-socials">
+                    <a href="https://instagram.com/hotelfabeninn" target="_blank" class="soc-btn" title="Instagram"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+                    <a href="https://facebook.com/hotelfabeninn" target="_blank" class="soc-btn" title="Facebook"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+                    <a href="https://wa.me/9779762917929" target="_blank" class="soc-btn" title="WhatsApp"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+                </div>
+            </div>
+            <div>
+                <div class="footer-col-head">Navigation</div>
+                <ul class="footer-links">
+                    <li><a href="#hero">Home</a></li>
+                    <li><a href="#rooms">Rooms &amp; Suites</a></li>
+                    <li><a href="#spa">Spa &amp; Wellness</a></li>
+                    <li><a href="#pool">Pool &amp; Recreation</a></li>
+                    <li><a href="#amenities">Amenities</a></li>
+                    <li><a href="#contact">Contact &amp; Location</a></li>
+                    <li><a href="#booking">Book Now</a></li>
+                </ul>
+            </div>
+            <div>
+                <div class="footer-col-head">Services</div>
+                <ul class="footer-links">
+                    <li><a href="#">Indoor Restaurant</a></li>
+                    <li><a href="#">Outdoor Terrace</a></li>
+                    <li><a href="#">Rooftop Dome House</a></li>
+                    <li><a href="#">Spa &amp; Massage</a></li>
+                    <li><a href="#">Swimming Pool</a></li>
+                    <li><a href="#">Free Parking</a></li>
+                </ul>
+            </div>
+            <div>
+                <div class="footer-col-head">Contact</div>
+                <div class="footer-contact-row"><span class="fci">📍</span><span class="fct">Sundarharicha-4, Morang, Nepal<br>In front of Gokulam Resort Gate<br>3 km from Itahari</span></div>
+                <div class="footer-contact-row"><span class="fci">📞</span><span class="fct">+977-9762917929</span></div>
+                <div class="footer-contact-row"><span class="fci">✉️</span><span class="fct">fabeninn@gmail.com</span></div>
+                <a href="https://wa.me/9779762917929" class="wa-footer-btn" target="_blank">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    Book via WhatsApp
+                </a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="footer-copy">© 2026 Hotel Faben Inn. All rights reserved. Sundarharicha-4, Morang, Nepal.</div>
+            <div class="footer-legal">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+/* ===================== LOADER ===================== */
+window.addEventListener('load', () => {
+    const fill = document.getElementById('loaderFill');
+    const pct  = document.getElementById('loaderPct');
+    const loader = document.getElementById('loader');
+    let p = 0;
+    const iv = setInterval(() => {
+        p = Math.min(p + Math.random() * 18, 100);
+        fill.style.width = p + '%';
+        pct.textContent = Math.floor(p) + '%';
+        if (p >= 100) {
+            clearInterval(iv);
+            setTimeout(() => {
+                gsap.to(loader, { opacity: 0, duration: 0.9, ease: 'power2.inOut', onComplete: () => {
+                    loader.style.display = 'none';
+                    startHeroAnim();
+                }});
+            }, 400);
+        }
+    }, 80);
+});
+
+/* ===================== CURSOR ===================== */
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cur.style.transform = `translate(${mx}px,${my}px) translate(-50%,-50%)`; });
+(function ringAnim() { rx += (mx - rx) * .12; ry += (my - ry) * .12; ring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`; requestAnimationFrame(ringAnim); })();
+document.querySelectorAll('a,button,[data-tilt],.g-card,.s-card,.am-item,.t-card').forEach(el => {
+    el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+    el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+});
+
+/* ===================== NAVBAR ===================== */
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => navbar.classList.toggle('scrolled', window.scrollY > 60));
+
+/* ===================== THREE.JS HERO CANVAS ===================== */
+(function initCanvas() {
+    const canvas = document.getElementById('hero-canvas');
+    canvas.style.cssText = 'position:absolute;inset:0;z-index:2;pointer-events:none;';
+    const scene = new THREE.Scene();
+    const cam = new THREE.PerspectiveCamera(65, innerWidth / innerHeight, .1, 1000);
+    cam.position.z = 5;
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+    const N = 400;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(N * 3);
+    const col = new Float32Array(N * 3);
+    const vel = new Float32Array(N);
+
+    for (let i = 0; i < N; i++) {
+        pos[i*3]   = (Math.random() - .5) * 22;
+        pos[i*3+1] = (Math.random() - .5) * 22;
+        pos[i*3+2] = (Math.random() - .5) * 12;
+        const t = Math.random();
+        col[i*3]   = .6 + t * .35;
+        col[i*3+1] = .45 + t * .3;
+        col[i*3+2] = .05 + t * .12;
+        vel[i] = .0008 + Math.random() * .002;
+    }
+
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+
+    const mat = new THREE.PointsMaterial({ size: .045, vertexColors: true, transparent: true, opacity: .75, blending: THREE.AdditiveBlending, depthWrite: false });
+    const pts = new THREE.Points(geo, mat);
+    scene.add(pts);
+
+    let tx = 0, ty = 0;
+    document.addEventListener('mousemove', e => { tx = (e.clientX / innerWidth - .5) * 2; ty = -(e.clientY / innerHeight - .5) * 2; });
+
+    let frame = 0;
+    (function tick() {
+        requestAnimationFrame(tick);
+        frame++;
+        const t = frame * .002;
+        const p2 = geo.attributes.position.array;
+        for (let i = 0; i < N; i++) {
+            p2[i*3+1] += vel[i];
+            if (p2[i*3+1] > 11) p2[i*3+1] = -11;
+        }
+        geo.attributes.position.needsUpdate = true;
+        pts.rotation.y = t * .04 + tx * .08;
+        pts.rotation.x = t * .02 + ty * .04;
+        cam.position.x += (tx * .28 - cam.position.x) * .04;
+        cam.position.y += (ty * .18 - cam.position.y) * .04;
+        cam.lookAt(scene.position);
+        renderer.render(scene, cam);
+    })();
+
+    window.addEventListener('resize', () => {
+        cam.aspect = innerWidth / innerHeight;
+        cam.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+    });
+})();
+
+/* ===================== CSS PARTICLES ===================== */
+function spawnParticles(id, n, gold) {
+    const c = document.getElementById(id);
+    if (!c) return;
+    for (let i = 0; i < n; i++) {
+        const d = document.createElement('div');
+        d.className = 'pt';
+        const s = Math.random() * 3 + .8;
+        d.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;bottom:0;--dx:${(Math.random()-.5)*80}px;` +
+            `background:${gold ? `rgba(${180+Math.random()*60|0},${120+Math.random()*50|0},${20+Math.random()*30|0},${.4+Math.random()*.5})` : `rgba(255,255,255,${.08+Math.random()*.18})`};` +
+            `animation-duration:${12+Math.random()*22}s;animation-delay:${Math.random()*18}s;filter:blur(${Math.random()<.4?'1.5px':'0'});`;
+        c.appendChild(d);
+    }
+}
+spawnParticles('heroPt', 55, true);
+spawnParticles('poolPt', 40, true);
+spawnParticles('spaPt', 28, false);
+
+/* Steam */
+(function() {
+    const wrap = document.getElementById('steamWrap');
+    if (!wrap) return;
+    wrap.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:2;';
+    for (let i = 0; i < 18; i++) {
+        const d = document.createElement('div');
+        d.className = 'steam';
+        const w = Math.random() * 5 + 2;
+        d.style.cssText = `width:${w}px;height:${Math.random()*55+35}px;left:${15+Math.random()*70}%;bottom:${8+Math.random()*25}%;animation-duration:${4+Math.random()*7}s;animation-delay:${Math.random()*9}s;`;
+        wrap.appendChild(d);
+    }
+})();
+
+/* ===================== HERO ANIMATION ===================== */
+function startHeroAnim() {
+    const tl = gsap.timeline();
+    tl.to('#hEyebrow', { opacity:1, y:0, duration:.9, ease:'power3.out' })
+      .to('#hT1',      { opacity:1, y:0, duration:1.05, ease:'power3.out' }, '-=.5')
+      .to('#hT2',      { opacity:1, y:0, duration:1.05, ease:'power3.out' }, '-=.75')
+      .to('#hBrand',   { opacity:1, y:0, duration:.85, ease:'power3.out' }, '-=.55')
+      .to('#hDiv',     { opacity:1, duration:.7, ease:'power2.out' }, '-=.4')
+      .to('#hSub',     { opacity:1, y:0, duration:.9, ease:'power3.out' }, '-=.35')
+      .to('#hBtns',    { opacity:1, y:0, duration:.9, ease:'power3.out' }, '-=.5');
+}
+
+/* ===================== PARALLAX ===================== */
+const heroVid = document.querySelector('.hero-video-wrap');
+const heroContent = document.querySelector('.hero-content');
+window.addEventListener('scroll', () => {
+    const sy = window.scrollY;
+    const hh = document.getElementById('hero').offsetHeight;
+    if (sy < hh) {
+        if (heroVid) heroVid.style.transform = `translateY(${sy * .35}px)`;
+        if (heroContent) { heroContent.style.transform = `translateY(${sy * .18}px)`; heroContent.style.opacity = 1 - (sy / hh) * 1.6; }
+    }
+    // section parallax
+    ['pool','spa'].forEach(id => {
+        const bg = document.getElementById(id === 'pool' ? 'poolBg' : 'spaBg');
+        if (!bg) return;
+        const sec = document.getElementById(id);
+        const top = sec.offsetTop, h = sec.offsetHeight;
+        if (sy + innerHeight > top && sy < top + h) {
+            const p = (sy - top + innerHeight) / (h + innerHeight);
+            bg.style.transform = `translateY(${(p - .5) * 120}px)`;
+        }
+    });
+}, { passive: true });
+
+/* ===================== SCROLL REVEAL ===================== */
+const ro = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: .13, rootMargin:'0px 0px -40px 0px' });
+document.querySelectorAll('.rv').forEach(el => ro.observe(el));
+
+/* ===================== COUNTER ===================== */
+function count(id, target, dur = 2000) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let v = 0, step = target / (dur / 16);
+    const iv = setInterval(() => {
+        v = Math.min(v + step, target);
+        el.textContent = Math.floor(v);
+        if (v >= target) clearInterval(iv);
+    }, 16);
+}
+const so = new IntersectionObserver(ent => {
+    if (ent[0].isIntersecting) { count('s1',7); count('s2',4); count('s3',10); count('s4',24); so.disconnect(); }
+}, { threshold: .5 });
+const statsEl = document.getElementById('stats');
+if (statsEl) so.observe(statsEl);
+
+/* ===================== ROOMS SCROLL ===================== */
+function scrollRooms(dir) {
+    document.getElementById('roomsTrack').scrollBy({ left: dir * 392, behavior: 'smooth' });
+}
+
+/* ===================== 3D TILT ===================== */
+document.querySelectorAll('[data-tilt],.g-card,.s-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+        const r = card.getBoundingClientRect();
+        const rx2 = ((e.clientY - r.top)  / r.height - .5) * -12;
+        const ry2 = ((e.clientX - r.left) / r.width  - .5) * 12;
+        card.style.transform = `perspective(900px) rotateX(${rx2}deg) rotateY(${ry2}deg) translateY(-5px)`;
+        card.style.transition = 'transform .08s';
+    });
+    card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(900px) rotateX(0) rotateY(0) translateY(0)';
+        card.style.transition = 'transform .55s cubic-bezier(.25,.46,.45,.94)';
+    });
+});
+
+/* ===================== GSAP SCROLL TRIGGERS ===================== */
+gsap.registerPlugin(ScrollTrigger);
+gsap.fromTo('.room-card', { y:55, opacity:0 }, { y:0, opacity:1, duration:.85, ease:'power3.out', stagger:.14, scrollTrigger:{ trigger:'#rooms', start:'top 72%' }});
+gsap.fromTo('.t-card',    { y:40, opacity:0 }, { y:0, opacity:1, duration:.8,  ease:'power3.out', stagger:.18, scrollTrigger:{ trigger:'#testimonials', start:'top 72%' }});
+gsap.fromTo('.am-item',   { y:28, opacity:0 }, { y:0, opacity:1, duration:.65, ease:'power2.out', stagger:.07, scrollTrigger:{ trigger:'#amenities', start:'top 70%' }});
+
+/* Pool cards — slide in from alternating sides + icon bounce */
+gsap.utils.toArray('.pc-card').forEach((card, i) => {
+    const fromX = i % 2 === 0 ? -80 : 80;
+    gsap.fromTo(card,
+        { opacity:0, x:fromX, scale:.9 },
+        { opacity:1, x:0, scale:1, duration:.9, ease:'power3.out', delay: i * 0.14,
+          scrollTrigger:{ trigger:'#pool .pool-cards', start:'top 78%', once:true },
+          onComplete() {
+              gsap.fromTo(card.querySelector('.g-card-icon'),
+                  { scale:.2, rotation:-30, opacity:0 },
+                  { scale:1, rotation:0, opacity:1, duration:.6, ease:'back.out(2.5)' }
+              );
+          }
+        }
+    );
+});
+gsap.fromTo('.stat-item', { y:30, opacity:0 }, { y:0, opacity:1, duration:.7,  ease:'power2.out', stagger:.1,  scrollTrigger:{ trigger:'#stats', start:'top 75%' }});
+
+/* ===================== SMOOTH ANCHOR ===================== */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+        const t = document.querySelector(a.getAttribute('href'));
+        if (t) { e.preventDefault(); t.scrollIntoView({ behavior:'smooth', block:'start' }); }
+    });
+});
+
+/* ===================== HAMBURGER (mobile) ===================== */
+const ham = document.getElementById('hamburger');
+const nl  = document.querySelector('.nav-links');
+ham.addEventListener('click', () => {
+    const open = nl.style.display === 'flex';
+    nl.style.cssText = open ? '' : 'display:flex;flex-direction:column;position:fixed;top:60px;left:0;right:0;background:rgba(6,5,4,.97);backdrop-filter:blur(20px);padding:30px 30px;gap:24px;border-bottom:1px solid rgba(201,168,76,.1);z-index:999;';
+});
+
+/* ===================== DATE CALENDAR — set min to today ===================== */
+(function initDates() {
+    const today = new Date().toISOString().split('T')[0];
+    const cin  = document.getElementById('bCheckIn');
+    const cout = document.getElementById('bCheckOut');
+    if (!cin || !cout) return;
+    cin.min  = today;
+    cout.min = today;
+    // When check-in changes, set check-out min to the day after
+    cin.addEventListener('change', () => {
+        if (!cin.value) return;
+        const next = new Date(cin.value);
+        next.setDate(next.getDate() + 1);
+        cout.min = next.toISOString().split('T')[0];
+        // If checkout is before new min, reset it
+        if (cout.value && cout.value <= cin.value) cout.value = '';
+    });
+})();
+
+/* ===================== WHATSAPP BOOKING ===================== */
+const WA = '9779762917929';
+
+function formatDate(val) {
+    if (!val) return 'Not selected';
+    const d = new Date(val);
+    return d.toLocaleDateString('en-US', { weekday:'short', year:'numeric', month:'long', day:'numeric' });
+}
+
+/* Booking form (with dates) → WhatsApp */
+function bookOnWhatsApp() {
+    const cin    = document.getElementById('bCheckIn').value;
+    const cout   = document.getElementById('bCheckOut').value;
+    const guests = document.getElementById('bGuests').value;
+
+    if (!cin)  { alert('Please select a Check-In date.'); return; }
+    if (!cout) { alert('Please select a Check-Out date.'); return; }
+
+    const msg =
+`Hello Hotel Faben Inn! 🏨
+
+I would like to book a room.
+
+📅 Check-In:  ${formatDate(cin)}
+📅 Check-Out: ${formatDate(cout)}
+👥 Guests:    ${guests}
+
+Please confirm availability and room options.
+
+Thank you!`;
+
+    window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+/* Room card "Book Now" buttons → WhatsApp */
+function bookRoom(roomName) {
+    const cin  = document.getElementById('bCheckIn')  ? document.getElementById('bCheckIn').value  : '';
+    const cout = document.getElementById('bCheckOut') ? document.getElementById('bCheckOut').value : '';
+
+    let dateLines = '';
+    if (cin)  dateLines += '\n📅 Check-In:  ' + formatDate(cin);
+    if (cout) dateLines += '\n📅 Check-Out: ' + formatDate(cout);
+
+    const msg =
+`Hello Hotel Faben Inn! 🏨
+
+I would like to book the *${roomName}*.${dateLines}
+
+Kindly confirm availability and share the booking details.
+
+Thank you!`;
+
+    window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+/* Spa "Book a Treatment" button → WhatsApp */
+function bookSpa() {
+    const msg =
+`Hello Hotel Faben Inn! 💆
+
+I would like to book a *Spa Treatment*.
+
+Please let me know the available treatments, timings, and confirm my booking.
+
+Thank you!`;
+
+    window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msg), '_blank');
+}
+</script>
+</body>
+</html>
